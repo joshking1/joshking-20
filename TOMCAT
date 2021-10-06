@@ -117,6 +117,6 @@ if [ $idapache -lt $uidmin ];
 then echo "3.1 Apache user id is less than uidmin which is okay" 
 fi
 if ps axu | grep httpd | grep -v '^root' 2>/dev/null;
-then echo ":COMPLIANT" >> $a
+then echo ":COMPLIAN" >> $a
 else echo ":NOT COMPLIANT" >>$a
      echo "3.1 NOT COMPLIANT. Apache runs as root user"

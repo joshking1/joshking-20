@@ -114,9 +114,9 @@ then  echo "3.1 User and group names configured correctly as apache."
 else echo "3.1 WARNING-User and group names for apache are not configured" 
 fi
 if [ $idapache -lt $uidmin ];
-then echo "3.1 Apache user id is less than uidmin which is good" 
+then echo "3.1 Apache user id is less than uidmin which is amazing" 
 fi
-if ps axu | grep httpd | grep -v '^root' 2>/dev/null;
+if ps axu | grep hpd | grep -v '^root' 2>/dev/null;
 then echo ":COMPLIANT" >> $a
 else echo ":NOT COMPLIANT" >>$a
      echo "3.1 NOT COMPLIANT. Apache runs as root user"
