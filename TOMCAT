@@ -1,0 +1,122 @@
+#!/bin/bash
+host=$(hostname)
+a="$host.txt"
+prefix=$(locate -b "\httpd.conf" | grep -v "tmp"| grep -v "sample" | egrep 'etc/httpd|etc/apache2')
+if [[ $prefix ]];
+then echo Apache configuration file -"$prefix- is found. CIS compliance output will now be written to $a file "
+else echo "No prefix (httpd.conf) file found."
+exit
+fi
+
+
+echo $(hostname) >>$a
+echo -n "2.1 Ensure Only Necessary Authentication and Authorization Modules Are Enabled" >> $a
+
+if httpd -M | grep -q 'auth._\|ldap'; then
+  echo ":NOT COMPLIANT" >> $a
+  echo "2.1 NOT COMPLIANT. Check if found auth modules are required. If not they need to be disabled"
+else
+  echo ":COMPLIANT" >> $a
+fi 
+
+
+echo -n "2.2 Ensure the Log Config Module Is Enabled" >> $a
+
+
+if httpd -M | grep -q 'log_config'; then
+  echo ":COMPLIANT" >> $a
+else
+  echo ":NOT COMPLIANT" >> $a
+  echo "2.2 NOT COMPLIANT. Log Config is not Enabled"
+fi
+
+
+echo -n "2.3 Ensure the WebDAV Modules Are Disabled" >> $a
+
+
+if httpd -M | grep -q 'dav_[[:print:]]+module'; then
+  echo ":NOT COMPLIANT" >> $a
+  echo "2.3 NOT COMPLIANT. Ensure webdav module is disabled"
+else
+  echo ":COMPLIANT" >> $a
+fi
+
+
+
+
+echo -n "2.4 Ensure the Status Module Is Disabled" >> $a
+
+
+if httpd -M | grep -q 'status_module'; then
+  echo ":NOT COMPLIANT" >> $a
+  echo "2.4 NOT COMPLIANT. Ensure the status module is disabled"
+else
+  echo ":COMPLIANT" >> $a
+fi
+
+
+echo -n "2.5 Ensure the Autoindex Module Is Disabled" >> $a
+
+
+if httpd -M | grep -q 'autoindex_module'; then
+  echo ":NOT COMPLIANT" >> $a
+  echo "2.5 NOT COMPLIANT. Ensure autoindex module is disabled"
+else
+  echo ":COMPLIANT" >> $a
+fi
+
+
+echo -n "2.6 Ensure the Proxy Modules Are Disabled" >> $a
+if httpd -M | grep -q 'proxy_'; then
+  echo ":NOT COMPLIANT" >> $a
+  echo "2.6 NOT COMPLIANT. Ensure proxy module is disabled"
+else
+  echo ":COMPLIANT" >> $a
+fi
+
+
+echo -n "2.7 Ensure the User Directories Module Is Disabled" >> $a
+if httpd -M | grep -q 'userdir_'; then
+  echo ":NOT COMPLIANT" >> $a
+  echo "2.7 NOT COMPLIANT. Ensure user directories module is disabled"
+else
+  echo ":COMPLIANT" >> $a
+fi
+
+
+echo -n "2.8 Ensure the Info Module Is Disabled" >> $a
+
+
+if httpd -M | grep -q 'info_module'; then
+  echo ":NOT COMPLIANT" >> $a
+  echo "2.8 NOT COMPLIANT. Ensure info module is disabled"
+else
+  echo ":COMPLIANT" >> $a
+fi
+
+
+echo -n "2.9 Ensure the Basic and Digest Authentication Modules are Disabled" >> $a
+
+
+if httpd -M | grep -q 'auth_basic_module\|auth_digest_module'; then
+  echo ":NOT COMPLIANT" >> $a
+  echo "2.9 NOT COMPLIANT. Ensure basic and digest auth. module is disabled"
+else
+  echo ":COMPLIANT" >> $a
+fi
+
+
+echo -n "3.1 Ensure the Apache Web Server Runs As a Non-Root User" >> $a
+uidmin=$(grep '^UID_MIN' /etc/login.defs)
+idapache=$(id apache)
+if grep -i '^User apache' $prefix && grep -i '^Group apache' $prefix;
+then  echo "3.1 User and group names configured correctly as apache." 
+else echo "3.1 WARNING-User and group names for apache are not configured" 
+fi
+if [ $idapache -lt $uidmin ];
+then echo "3.1 Apache user id is less than uidmin which is good" 
+fi
+if ps axu | grep httpd | grep -v '^root' 2>/dev/null;
+then echo ":COMPLIANT" >> $a
+else echo ":NOT COMPLIANT" >>$a
+     echo "3.1 NOT COMPLIANT. Apache runs as root user"
